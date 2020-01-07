@@ -67,8 +67,9 @@ public class portGUI extends Application implements Observer{
 
         resize();
         address_In.setPromptText("web URL. e.g. www.foo.com or https://foo.com");
-        sniff.setRunAll(false);
-        sniff.setTimeout(500);
+        sniff.setRunAll(true);
+        sniff.setTimeout(10);
+        sniff.setNoOfThread(100);
 
         startButton.setOnMouseEntered(event -> startButton.setOver(1.0));
         startButton.setOnMouseExited(event -> startButton.setOver(0.8));
@@ -122,9 +123,8 @@ public class portGUI extends Application implements Observer{
 
     @Override
     public void update(String showText) {
-        synchronized (portGUI.class){
+//        synchronized (portGUI.class){
             showPane.setContext(showText);
-        }
         System.out.println(showText);
     }
 }
