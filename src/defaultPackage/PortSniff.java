@@ -7,6 +7,7 @@ import javafx.concurrent.Task;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class PortSniff {
     private final static int[] commonPort = {21, 23, 25, 80, 110, 139, 443, 1433, 1521, 3389, 8080};
@@ -15,8 +16,9 @@ public class PortSniff {
     private int[] ports = new int[]{};
     private int numOfThread = 1;
     private boolean runAll = false;
-    private static ArrayList<Integer> openPorts = new ArrayList<>();
+    public HashSet<Integer> openPorts = new HashSet<>();
     private ArrayList<Observer> observers = new ArrayList<>();
+    public ArrayList<Task> WORKERS = new ArrayList<>();
     private int timeout = 1000;
 
 //    private class SniffThread extends Thread{
@@ -111,18 +113,21 @@ public class PortSniff {
         protected Object call() throws Exception {
             if (startPort_SUB_THREAD == -1 && endPort_SUB_THREAD == -1) {
                 for (int port : commonPort) {
+                    if(isCancelled())break;
                     sniff(port);
                 }
             } else if (startPort_SUB_THREAD == endPort_SUB_THREAD) {
                 sniff(startPort_SUB_THREAD);
             } else {
                 for (int i = startPort_SUB_THREAD; i <= endPort_SUB_THREAD; i++) {
+                    if(isCancelled())break;
                     sniff(i);
                 }
             }
-
             return null;
         }
+
+
 
         @Override
         protected void running() {
@@ -131,7 +136,8 @@ public class PortSniff {
 
         @Override
         protected void succeeded() {
-            updateMessage("Done!");
+
+            updateMessage("ThreadFinished");
         }
 
         @Override
@@ -150,7 +156,6 @@ public class PortSniff {
                 URL target_path = new URL(address);
                 SocketAddress socketAddress = new InetSocketAddress(target_path.getHost(), port);
                 System.out.println("@port: " + port);
-                System.out.println(observers.size());
                 //portGUI.setContext("@port");
                 s = new Socket();
                 s.connect(socketAddress, timeout);
@@ -210,6 +215,7 @@ public class PortSniff {
     }
 
     public void setNoOfThread(int numOfThread) {
+        if(numOfThread<1)numOfThread=1;
         this.numOfThread = numOfThread;
     }
 
@@ -240,12 +246,21 @@ public class PortSniff {
         //unit ms, lower bound 500ms. default 1s.
     }
 
+    public int getNumOfThread(){
+        return this.numOfThread;
+    }
+    public void clearPorts(){
+        this.ports = new int[]{};
+    }
+
     public void distributeWorker() {
+        WORKERS = new ArrayList<>();
         if (this.ports.length < 1 && !this.runAll) {
             SniffTask sniffTask = new SniffTask();
+            WORKERS.add(sniffTask);
             new Thread(sniffTask).start();
             //use common ports.
-        } else if (this.ports.length < 1 && this.runAll) {
+        } else if (this.runAll) {
             distributeWorker(1, 65535);
             //use all ports.
         } else {
@@ -261,13 +276,14 @@ public class PortSniff {
     }
 
     private void distributeWorker(int startPort, int endPort) {
-        int ports_per_thread = (int) endPort / this.numOfThread;
-        int ports_mod_thread = endPort % this.numOfThread;
-        int start = startPort, end = ports_per_thread + start;
+        int ports_per_thread = (int) (endPort - startPort) / this.numOfThread;
+        int ports_mod_thread = (endPort - startPort) % this.numOfThread;
+        int start = startPort, end = ports_per_thread+start;
         boolean run_once = true;
         for (int i = 1; i <= this.numOfThread; i++) {
             System.out.println(start + " " + end);
             SniffTask sniffTask = new SniffTask(start, end);
+            WORKERS.add(sniffTask);
             new Thread(sniffTask).start();
             if (i <= ports_mod_thread) {
                 start += ports_per_thread + 1;
@@ -278,7 +294,7 @@ public class PortSniff {
                 run_once = false;
                 start += ports_per_thread;
                 end += ports_per_thread;
-                if (end == endPort + 1) end--;
+                if (end == (endPort - startPort)) end--;
             }
         }
     }
