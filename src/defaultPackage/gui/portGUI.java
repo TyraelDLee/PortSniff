@@ -6,8 +6,6 @@ import javafx.animation.RotateTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -18,11 +16,16 @@ import defaultPackage.*;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Created by leety on 2019/4/11.
- */
+/**************************************************************************
+ *                                                                        *
+ *                         PortSniffer v 1.0                              *
+ *                         Main class for GUI                             *
+ *                                                                        *
+ **************************************************************************/
 public class portGUI extends Application implements Observer {
     private static final double WINDOW_HEIGHT = 500.0;
     private static final double WINDOW_WIDTH = 800.0;
@@ -36,14 +39,13 @@ public class portGUI extends Application implements Observer {
     private ImageButton startButton = new ImageButton(100, 80, "Start", .95, .82, .38, .8);
     private ImageButton clearButton = new ImageButton(100, 80, "Clear");
     private ImageButton settingButton = new ImageButton(25, 25, new Image(Img_address.replace("^name", "setting")));
-    private static ShowPane showPane = new ShowPane(WINDOW_WIDTH, WINDOW_HEIGHT - 150);
+    private ShowPane showPane = new ShowPane(WINDOW_WIDTH, WINDOW_HEIGHT - 150);
     private PortSniff sniff = new PortSniff();
+    private ProgressBar progressBar = new ProgressBar(WINDOW_WIDTH-100, 5, true);
 
     private final Group root = new Group();
 
     private SettingGroup settingGroup = new SettingGroup(mainStageHeight, mainStageWidth);
-
-    private final static int[] commonPort = {21, 23, 25, 80, 110, 139, 443, 1433, 1521, 3389, 8080};
 
     private void setZoomFactor(Number mainStageWidth, Number mainStageHeight) {
         double width = mainStageWidth.doubleValue() / WINDOW_WIDTH, height = mainStageHeight.doubleValue() / WINDOW_HEIGHT;
@@ -54,6 +56,7 @@ public class portGUI extends Application implements Observer {
     }
 
     public void start(Stage primaryStage) throws Exception {
+        AtomicReference<String> ht = new AtomicReference<>("http://");
         primaryStage.setTitle("Port scanner");
         primaryStage.setMinHeight(420);
         primaryStage.setMinWidth(720);
@@ -73,38 +76,53 @@ public class portGUI extends Application implements Observer {
         //-- resize listener --//
 
         resize();
-        address_In.setPromptText("web URL. e.g. www.foo.com or https://foo.com");
+        address_In.setPromptText("web URL or IP. e.g. www.foo.com or 127.0.0.1");
 
         sniff.setTimeout(1000);
         sniff.setNoOfThread(1);
 
-        ArrayList<Boolean> allDone = new ArrayList<>();
-
-
         startButton.setOnMouseEntered(event -> startButton.setOver(1.0));
         startButton.setOnMouseExited(event -> startButton.setOver(0.8));
         startButton.setOnMouseClicked(event -> {
-            address = address_In.getText();
+            progressBar.reset();
+            startButton.setDisable(true);
+            ArrayList<Boolean> allDone = new ArrayList<>();
+            ArrayList<Integer> openPorts = new ArrayList<>();
+
+            address = ht+address_In.getText();
             System.out.println(address);
             showPane.setContext(address);
             sniff.setURL(address);
             //set the sniffer attributes.
             sniff.distributeWorker();
             System.out.println("size: " + sniff.WORKERS.size());
-            int threads = 0;
-            for (Task t : sniff.WORKERS) {
+            int threads = 1;
+            for (PortSniff.SniffTask t : sniff.WORKERS) {
                 int finalThreads = threads;
+                AtomicReference<Double> currentProgress = new AtomicReference<>((double) 0);
+                t.progressProperty().addListener((observable, oldValue, newValue) -> {
+                    if(t.getProgress()>= currentProgress.get()){
+                        synchronized (this){
+                            currentProgress.set(t.getProgress());
+                            progressBar.setUpdate(currentProgress.get());
+                        }
+                    }
+                });
                 t.messageProperty().addListener((observable, oldValue, newValue) -> {
                     if (newValue.equals("ThreadFinished")) {
                         allDone.add(true);
                         System.out.println("Thread " + finalThreads + " done!");
+                        openPorts.addAll(t.getOpenPortOnThisThread());
                     }
                     if (allDone.size() == sniff.getNumOfThread()) {
                         String openedPort = "\r\nPorts opened: \r\n";
-                        for (int port : sniff.openPorts) {
+                        if(openPorts.size()<1)
+                            openedPort+="none...";
+                        for (int port : openPorts) {
                             openedPort += port + " ";
                         }
                         showPane.setContext(openedPort);
+                        startButton.setDisable(false);
                     }
                 });
                 threads++;
@@ -121,6 +139,7 @@ public class portGUI extends Application implements Observer {
             settingInOutAnim(settingGroup,false);
             //root.getChildren().remove(settingGroup);
         });
+        settingGroup.returnButton.setOnMouseExited(event -> rotateAnim(settingGroup.returnButton, false));
         settingGroup.returnButton.setOnMouseEntered(event -> rotateAnim(settingGroup.returnButton, true));
         settingGroup.commonPort.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
@@ -148,6 +167,7 @@ public class portGUI extends Application implements Observer {
             } else {
                 settingGroup.startPort.setDisable(false);
                 settingGroup.endPort.setDisable(false);
+                sniff.setRunAll(false);
             }
         });
         settingGroup.mtcheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -182,11 +202,18 @@ public class portGUI extends Application implements Observer {
                 sniff.setTimeout(Integer.parseInt(newValue));
         });
 
+        settingGroup.http.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                ht.set("http://");
+        });
+        settingGroup.https.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            ht.set("https://");
+        });
 
         clearButton.setOnMouseEntered(event -> clearButton.setOver(1));
         clearButton.setOnMouseExited(event -> clearButton.setOver(0.8));
         clearButton.setOnMouseClicked(event -> {
             showPane.clear();
+            progressBar.reset();
         });
 
         root.getChildren().add(startButton);
@@ -194,6 +221,7 @@ public class portGUI extends Application implements Observer {
         root.getChildren().add(address_In);
         root.getChildren().add(showPane);
         root.getChildren().add(settingButton);
+        root.getChildren().add(progressBar);
         primaryStage.setScene(mainStage);
         primaryStage.show();
     }
@@ -201,40 +229,34 @@ public class portGUI extends Application implements Observer {
     //X: width, Y: height
     private void resize() {
         settingGroup.root.setLayoutY(mainStageHeight.doubleValue() * 0.3);
-        settingGroup.root.setLayoutX(mainStageWidth.doubleValue() / 2 - settingGroup.root.getWidth() / 2);
+        settingGroup.root.setLayoutX((mainStageWidth.doubleValue() - settingGroup.root.getWidth()) / 2);
         settingGroup.resize(mainStageWidth, mainStageHeight);
         address_In.setMinSize(200, 20);
         address_In.setPrefSize(300 * ZOOMFACTOR, 25 * ZOOMFACTOR);
-        address_In.setLayoutX(mainStageWidth.doubleValue() / 2 - address_In.getPrefWidth() / 2 - 100);
+        address_In.setLayoutX((mainStageWidth.doubleValue() - address_In.getPrefWidth()) / 2 - 100);
         address_In.setLayoutY(20);
         settingButton.setLocation(mainStageWidth.doubleValue() - 50, 20);
 
-        startButton.setLocation(mainStageWidth.doubleValue() / 2 + address_In.getPrefWidth() / 2 + 50 - 100, 20);
+        startButton.setLocation((mainStageWidth.doubleValue() + address_In.getPrefWidth()) / 2 + 50 - 100, 20);
         if (25 * ZOOMFACTOR <= 20) startButton.setSize(100, 20);
         else startButton.setSize(100, 25 * ZOOMFACTOR);
-        clearButton.setLocation(mainStageWidth.doubleValue() / 2 + address_In.getPrefWidth() / 2 + 180 - 100, 20);
+        clearButton.setLocation((mainStageWidth.doubleValue() + address_In.getPrefWidth()) / 2 + 180 - 100, 20);
         if (25 * ZOOMFACTOR <= 20) clearButton.setSize(100, 20);
         else clearButton.setSize(100, 25 * ZOOMFACTOR);
 
-        showPane.setSize(mainStageWidth.doubleValue(), (mainStageHeight.doubleValue() - 150) * ZOOMFACTOR);
-        showPane.setLocation(0, 150);
-    }
+        showPane.setSize(mainStageWidth.doubleValue()-50, mainStageHeight.doubleValue() - 200);
+        showPane.setLocation(25, 150);
 
-    public static void setContext(String showText) {
-        synchronized (portGUI.class) {
-            showPane.setContext(showText);
-        }
-        System.out.println(showText);
+        progressBar.setSize(mainStageWidth.doubleValue()-100, 5);
+        progressBar.setLocation(mainStageWidth.doubleValue() / 2 - progressBar.getComponentWidth() / 2, mainStageHeight.doubleValue()-30);
     }
 
     @Override
     public void update(String showText) {
-//        synchronized (portGUI.class){
         showPane.setContext(showText);
-        //System.out.println(showText);
     }
 
-    public void rotateAnim(Node node, boolean right) {
+    private void rotateAnim(Node node, boolean right) {
         RotateTransition rt = new RotateTransition(Duration.millis(250), node);
         if (right) {
             rt.setFromAngle(0);
@@ -247,20 +269,9 @@ public class portGUI extends Application implements Observer {
         rt.play();
     }
 
-    private boolean convertToInt(String input) {
-        ArrayList<Boolean> arr = new ArrayList<>();
-        if (input.length() < 1 || input.equals("")) return false;
-
-        for (int i = 0; i < input.length(); i++) {
-            arr.add(ints.contains(input.charAt(i) + ""));
-        }
-        if (arr.contains(false)) return false;
-        else return true;
-    }
-
     private void settingInOutAnim(Node node, boolean in) {
         FadeTransition ft = new FadeTransition(Duration.millis(500), node);
-        ft.setFromValue(0.5f);
+        ft.setFromValue(0.8f);
         ft.setToValue(1.0f);
         ft.setAutoReverse(false);
         TranslateTransition tt = new TranslateTransition(Duration.millis(500), node);
@@ -280,5 +291,16 @@ public class portGUI extends Application implements Observer {
             if (!in)root.getChildren().remove(settingGroup);
         });
     }
+
+    private boolean convertToInt(String input) {
+        ArrayList<Boolean> arr = new ArrayList<>();
+        if (input.length() < 1 || input.equals("")) return false;
+
+        for (int i = 0; i < input.length(); i++) {
+            arr.add(ints.contains(input.charAt(i) + ""));
+        }
+        if (arr.contains(false)) return false;
+        else return true;
+    }
 }
-//todo: remove the nested classes
+//todo: add the pulse/restart feature for sub-threads.

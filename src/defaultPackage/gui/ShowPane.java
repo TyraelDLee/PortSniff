@@ -35,8 +35,10 @@ public class ShowPane extends ScrollPane {
 
     void setSize(double width, double height) {
         //this.setPrefSize(width,height);
-        this.setPrefHeight(height);
-        this.setPrefWidth(width);
+//        this.setPrefHeight(height);
+//        this.setPrefWidth(width);
+        this.setMinSize(width, height);
+        this.setMaxSize(width, height);
         System.out.println(this.getHeight()+" "+this.getWidth());
     }
 

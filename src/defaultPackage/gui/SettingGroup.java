@@ -2,10 +2,7 @@ package defaultPackage.gui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -28,6 +25,9 @@ public class SettingGroup extends StackPane {
     public CheckBox runAll = new CheckBox("run all ports");
     private GridPane timeoutSet = new GridPane();
     public TextField timeout = new TextField();
+    public RadioButton http = new RadioButton("http");
+    public RadioButton https = new RadioButton("https");
+    private GridPane requestmode = new GridPane();
 
     private VBox vBox = new VBox();
     private HBox hBox = new HBox();
@@ -67,12 +67,21 @@ public class SettingGroup extends StackPane {
         timeoutSet.add(timeout,0,1);
         timeoutSet.add(new Label(" ms"),1,1);
 
+        ToggleGroup group = new ToggleGroup();
+        http.setToggleGroup(group);
+        http.setSelected(true);
+        https.setToggleGroup(group);
+        requestmode.setHgap(5);
+        requestmode.setVgap(5);
+        requestmode.add(http,0,1);
+        requestmode.add(https,1,1);
 
         root.add(checkPort,0,0);
         root.add(ports,0,1);
         root.add(timeoutSet,0,2);
         root.add(mtcheck,1,0);
         root.add(mtfeild,1,1);
+        root.add(requestmode,1,2);
         root.setVgap(10);
         root.setHgap(50);
     }

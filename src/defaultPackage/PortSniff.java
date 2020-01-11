@@ -9,6 +9,12 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+/**************************************************************************
+ *                                                                        *
+ *                         PortSniffer v 1.0                              *
+ *                        Main class for Logic                            *
+ *                                                                        *
+ **************************************************************************/
 public class PortSniff {
     private final static int[] commonPort = {21, 23, 25, 80, 110, 139, 443, 1433, 1521, 3389, 8080};
 
@@ -16,84 +22,21 @@ public class PortSniff {
     private int[] ports = new int[]{};
     private int numOfThread = 1;
     private boolean runAll = false;
-    public HashSet<Integer> openPorts = new HashSet<>();
+    //public HashSet<Integer> openPorts = new HashSet<>();
     private ArrayList<Observer> observers = new ArrayList<>();
-    public ArrayList<Task> WORKERS = new ArrayList<>();
+    public ArrayList<SniffTask> WORKERS = new ArrayList<>();
     private int timeout = 1000;
 
-//    private class SniffThread extends Thread{
-//        private Socket s;
-//        private int startPort_SUB_THREAD = -1;
-//        private int endPort_SUB_THREAD = -1;
-//        private boolean runAll = false;
-//        SniffThread(boolean runAll){
-//            this.runAll = runAll;
-//        }
-//
-//        SniffThread(int port){
-//            this.startPort_SUB_THREAD = port;
-//            this.endPort_SUB_THREAD = port;
-//        }
-//
-//        SniffThread(int startPort_SUB_THREAD, int endPort_SUB_THREAD){
-//            if(endPort_SUB_THREAD>65535) endPort_SUB_THREAD = 65535;
-//            if(startPort_SUB_THREAD < 1) startPort_SUB_THREAD = 1;
-//            this.startPort_SUB_THREAD = startPort_SUB_THREAD;
-//            this.endPort_SUB_THREAD = endPort_SUB_THREAD;
-//        }
-//
-//        void sniff(int port){
-//            long startTime = System.currentTimeMillis();
-//            try{
-//                URL target_path = new URL(address);
-//                SocketAddress socketAddress = new InetSocketAddress(target_path.getHost(),port);
-//                System.out.println("@port: "+port);
-//                System.out.println(observers.size());
-//                //portGUI.setContext("@port");
-//                s = new Socket();
-//                s.connect(socketAddress,timeout);
-//                s.setSoTimeout(timeout);
-//                openPorts.add(port);
-//                s.close();
-//
-//            }catch (MalformedURLException m){
-//                System.err.println("is not a valid URL");
-//            }catch (IOException ex){
-//                //System.err.println("Unknown error occur!");
-//            }
-//            Platform.runLater(()->{
-//                upd("@port: "+port+", communicate time: "+(System.currentTimeMillis()-startTime));
-//            });
-//        }
-//
-//        public void run(){
-//            if(startPort_SUB_THREAD == -1 && endPort_SUB_THREAD == -1){//todo:check logic.
-//                for(int port : commonPort){
-//                    sniff(port);
-//                }
-//            }else if(startPort_SUB_THREAD == endPort_SUB_THREAD){
-//               sniff(startPort_SUB_THREAD);
-//            }else{
-//                for (int i = startPort_SUB_THREAD; i <= endPort_SUB_THREAD; i++) {
-//                    sniff(i);
-//                }
-//            }
-//            String returnResult = "Ports: ";
-//            for(int portsInfo : openPorts){
-//                returnResult+=portsInfo+" ";
-//            }
-//            returnResult += "are opened";
-//            final String final_returnResult = returnResult;
-//            Platform.runLater(()->{
-//                upd(final_returnResult);
-//            });
-//        }
-//    }
-
-    private class SniffTask extends Task {
+    /**
+     * The sniff worker class, extended from Task with concurrency operation
+     * this class will be called by distribute worker by given the number of
+     * Thread. Each Task will run the specific port range which allocate by
+     * distribute worker*/
+    public class SniffTask extends Task {
         private Socket s;
         private int startPort_SUB_THREAD = -1;
         private int endPort_SUB_THREAD = -1;
+        private ArrayList<Integer> openPortOnThisThread = new ArrayList<>();
 
         SniffTask() {}
 
@@ -111,23 +54,35 @@ public class PortSniff {
 
         @Override
         protected Object call() throws Exception {
+            int totalPort = endPort_SUB_THREAD - startPort_SUB_THREAD + 1;
+            double progress = 0.0;
             if (startPort_SUB_THREAD == -1 && endPort_SUB_THREAD == -1) {
+                int currentPort = 0;
                 for (int port : commonPort) {
                     if(isCancelled())break;
                     sniff(port);
+                    currentPort++;
+                    progress = getCurrentProgress(currentPort,commonPort.length);
+                    updateProgress(currentPort,commonPort.length);
                 }
             } else if (startPort_SUB_THREAD == endPort_SUB_THREAD) {
                 sniff(startPort_SUB_THREAD);
+                progress = getCurrentProgress(1,1);
+                updateProgress(1,1);
             } else {
                 for (int i = startPort_SUB_THREAD; i <= endPort_SUB_THREAD; i++) {
                     if(isCancelled())break;
                     sniff(i);
+                    progress = getCurrentProgress(i-startPort_SUB_THREAD+1,totalPort);
+                    updateProgress(i-startPort_SUB_THREAD+1,totalPort);
                 }
             }
             return null;
         }
 
-
+        private double getCurrentProgress(int current, int total){
+            return Math.round((double)current/total * 100)/100.0;
+        }
 
         @Override
         protected void running() {
@@ -150,17 +105,28 @@ public class PortSniff {
             updateMessage("Failed!");
         }
 
+        public ArrayList<Integer> getOpenPortOnThisThread(){
+            return this.openPortOnThisThread;
+        }
+
+        /**
+         * This method used Socket to send request to the destination.
+         *
+         * destination format: http/https URL or IP address and with ports
+         * @param port connect with the specific port.
+         * */
         void sniff(int port) {
             long startTime = System.currentTimeMillis();
             try {
                 URL target_path = new URL(address);
                 SocketAddress socketAddress = new InetSocketAddress(target_path.getHost(), port);
-                System.out.println("@port: " + port);
+                //System.out.println("@port: " + port);
                 //portGUI.setContext("@port");
                 s = new Socket();
                 s.connect(socketAddress, timeout);
                 s.setSoTimeout(timeout);
-                openPorts.add(port);
+                //openPorts.add(port);
+                openPortOnThisThread.add(port);
                 s.close();
 
             } catch (MalformedURLException m) {
@@ -175,8 +141,7 @@ public class PortSniff {
 
     }
 
-    public PortSniff() {
-    }
+    public PortSniff() {}
 
     public PortSniff(String address, boolean runAll) {
         address = formatString(address);
@@ -253,6 +218,11 @@ public class PortSniff {
         this.ports = new int[]{};
     }
 
+    /**
+     * This method will allocate the workload to Tasks.
+     * The sniff mode and number of Thread will defined
+     * by users.
+     * */
     public void distributeWorker() {
         WORKERS = new ArrayList<>();
         if (this.ports.length < 1 && !this.runAll) {
@@ -266,6 +236,7 @@ public class PortSniff {
         } else {
             if (this.ports.length == 1) {
                 SniffTask sniffTask = new SniffTask(this.ports[0]);
+                WORKERS.add(sniffTask);
                 new Thread(sniffTask).start();
                 //one defined port
             } else {
@@ -281,7 +252,7 @@ public class PortSniff {
         int start = startPort, end = ports_per_thread+start;
         boolean run_once = true;
         for (int i = 1; i <= this.numOfThread; i++) {
-            System.out.println(start + " " + end);
+            //System.out.println(start + " " + end);
             SniffTask sniffTask = new SniffTask(start, end);
             WORKERS.add(sniffTask);
             new Thread(sniffTask).start();
@@ -299,7 +270,9 @@ public class PortSniff {
         }
     }
 
-
+    /**
+     * The observer mode function
+     * */
     public void reg(Observer o) {
         observers.add(o);
     }
