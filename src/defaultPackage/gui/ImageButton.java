@@ -13,7 +13,7 @@ import javafx.scene.text.Font;
  *                       GUI component by Tyrael                          *
  *         ImageButton, which is the button could be powerful.            *
  *                                                                        *
- *                         Copyright LYL 2020                             *
+ *                       Copyright (c) 2020 LYL                           *
  *                            @author LYL                                 *
  *                            @version 1.0                                *
  **************************************************************************/
@@ -49,6 +49,8 @@ public class ImageButton extends StackPane {
      * This constructor set a new button with height, width and text.
      * The background color is defined at here.
      *
+     * The color value rage is 0.0 ~ 1.0
+     *
      * @param height button height
      * @param width button width
      * @param text the show text
@@ -71,7 +73,9 @@ public class ImageButton extends StackPane {
      * This constructor set a new button with height, width and text.
      * This new button background is an Image.
      *
-     * In this new button background style definition is not recommend.
+     * In this new button background style definition is not recommend
+     * and will not effect.
+     *
      * @param height button height
      * @param width button width
      * @param background button background Image
@@ -96,7 +100,21 @@ public class ImageButton extends StackPane {
     }
 
     /**
-     * Style set
+     * Set the size for button. Also called for resize the button
+     * by {@code resize()} in {@code main gui class}.
+     *
+     * @param width the width for this component
+     * @param height the height for this component
+     * */
+    void setSize(double width, double height) {
+        this.background.setWidth(width);
+        this.background.setHeight(height);
+        this.image_background.setFitHeight(height);
+        this.image_background.setFitWidth(width);
+    }
+
+    /**
+     * Style setting
      * Set the effect when mouse over the button
      * the button style will setting on background color
      * and could be defined later.
@@ -112,8 +130,8 @@ public class ImageButton extends StackPane {
     }
 
     /**
-     * Style set
-     * Set the font size for text which displayed on button
+     * Style setting
+     * Set the font size for text which displayed on button.
      *
      * @param size the size for font
      * */
@@ -122,26 +140,21 @@ public class ImageButton extends StackPane {
     }
 
     /**
-     * Style set
-     * Set a new background color for a button
+     * Style setting
+     * Set a new display color for button.
+     * This method will override the default color which
+     * defined in constructors. This method also may called
+     * in listener for change color dynamically.
      *
-     * @param r the red channel for background color
-     * @param g the green channel for background color
-     * @param b the blue channel for background color
-     * @param a the alpha channel for background color
+     * The color value rage is 0.0 ~ 1.0
+     *
+     * @param r the red channel for bar color
+     * @param g the green channel for bar color
+     * @param b the blue channel for bar color
+     * @param a the alpha channel for bar color
      * */
     void setColor(double r, double g, double b, double a){
         this.backgroundColor = new Color(r,g,b,a);
         this.background.setFill(backgroundColor);
-    }
-
-    /**
-     * Set the size for button. Also called for resize the button
-     * by {@code resize()} in {@code main gui class}*/
-    void setSize(double width, double height) {
-        this.background.setWidth(width);
-        this.background.setHeight(height);
-        this.image_background.setFitHeight(height);
-        this.image_background.setFitWidth(width);
     }
 }

@@ -1,19 +1,19 @@
 package defaultPackage;
 
-import defaultPackage.gui.portGUI;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 /**************************************************************************
  *                                                                        *
  *                         PortSniffer v 1.0                              *
  *                        Main class for Logic                            *
  *                                                                        *
+ *                       Copyright (c) 2020 LYL                           *
+ *                            @author LYL                                 *
+ *                            @version 1.0                                *
  **************************************************************************/
 public class PortSniff {
     private final static int[] commonPort = {21, 23, 25, 80, 110, 139, 443, 1433, 1521, 3389, 8080};
@@ -22,7 +22,6 @@ public class PortSniff {
     private int[] ports = new int[]{};
     private int numOfThread = 1;
     private boolean runAll = false;
-    //public HashSet<Integer> openPorts = new HashSet<>();
     private ArrayList<Observer> observers = new ArrayList<>();
     public ArrayList<SniffTask> WORKERS = new ArrayList<>();
     private int timeout = 1000;
@@ -31,7 +30,8 @@ public class PortSniff {
      * The sniff worker class, extended from Task with concurrency operation
      * this class will be called by distribute worker by given the number of
      * Thread. Each Task will run the specific port range which allocate by
-     * distribute worker*/
+     * distribute worker
+     * */
     public class SniffTask extends Task {
         private Socket s;
         private int startPort_SUB_THREAD = -1;
@@ -91,7 +91,6 @@ public class PortSniff {
 
         @Override
         protected void succeeded() {
-
             updateMessage("ThreadFinished");
         }
 
@@ -120,12 +119,10 @@ public class PortSniff {
             try {
                 URL target_path = new URL(address);
                 SocketAddress socketAddress = new InetSocketAddress(target_path.getHost(), port);
-                //System.out.println("@port: " + port);
-                //portGUI.setContext("@port");
+                System.out.println("@port: " + port);
                 s = new Socket();
                 s.connect(socketAddress, timeout);
                 s.setSoTimeout(timeout);
-                //openPorts.add(port);
                 openPortOnThisThread.add(port);
                 s.close();
 

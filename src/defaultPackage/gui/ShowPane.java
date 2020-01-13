@@ -3,11 +3,17 @@ package defaultPackage.gui;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
-
+/**************************************************************************
+ *                                                                        *
+ *                       GUI component by Tyrael                          *
+ *       ShowPane, which extended from basic ScrollPane layout.           *
+ *                                                                        *
+ *                       Copyright (c) 2020 LYL                           *
+ *                            @author LYL                                 *
+ *                            @version 1.0                                *
+ **************************************************************************/
 public class ShowPane extends ScrollPane {
     private GridPane contextPane = new GridPane();
     private double width = 0, height = 0;
@@ -34,12 +40,8 @@ public class ShowPane extends ScrollPane {
     }
 
     void setSize(double width, double height) {
-        //this.setPrefSize(width,height);
-//        this.setPrefHeight(height);
-//        this.setPrefWidth(width);
         this.setMinSize(width, height);
         this.setMaxSize(width, height);
-        System.out.println(this.getHeight()+" "+this.getWidth());
     }
 
     void setContext(String con){

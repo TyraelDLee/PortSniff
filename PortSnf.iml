@@ -7,5 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="org.hyperic:sigar:1.6.5.132-6" level="project" />
   </component>
 </module>

@@ -30,6 +30,12 @@ public class test {
 
 
         System.out.println(getCurrentProgress(1,1));
+        int h,m,s;
+        double duration = 3662;
+        h = (int)duration/3600;
+        m = ((int)duration/60)%60;
+        s = (int)duration%60;
+        System.out.println(h+" "+m+" "+s+" ");
     }
 
     private static double getCurrentProgress(int current, int total){

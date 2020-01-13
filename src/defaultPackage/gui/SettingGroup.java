@@ -1,13 +1,25 @@
 package defaultPackage.gui;
 
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
 
-
+/**************************************************************************
+ *                                                                        *
+ *                         PortSniffer v 1.0                              *
+ *                       GUI component by Tyrael                          *
+ *         SettingGroup, design for main GUI for port sniffer.            *
+ *                                                                        *
+ *                       Copyright (c) 2020 LYL                           *
+ *                            @author LYL                                 *
+ *                            @version 1.0                                *
+ **************************************************************************/
 public class SettingGroup extends StackPane {
     private Number mainStageHeight, mainStageWidth;
     private static final String Img_address = "defaultPackage/asset/^name.png";
@@ -28,12 +40,15 @@ public class SettingGroup extends StackPane {
     public RadioButton http = new RadioButton("http");
     public RadioButton https = new RadioButton("https");
     private GridPane requestmode = new GridPane();
+    private static final Label copyright = new Label("Copyright © 2019 - 2020 Tyrael LI");
+    private static final Label version =   new Label("Version 1.2");
+    private static final Color infoColor = new Color(.5,.5,.5,.8);
+    private GridPane infoLayout = new GridPane();
 
     private VBox vBox = new VBox();
     private HBox hBox = new HBox();
 
     private void init(){
-        returnButton.setLocation(30,30);
         returnButton.setMaxSize(20,20);
         commonPort.setSelected(true);
         startPort.setPromptText("start port, 1 ~ 65535");
@@ -84,6 +99,15 @@ public class SettingGroup extends StackPane {
         root.add(requestmode,1,2);
         root.setVgap(10);
         root.setHgap(50);
+
+        copyright.setTextFill(infoColor);
+        copyright.setFont(Font.font("Menlo",12));
+        version.setTextFill(infoColor);
+        version.setFont(Font.font("Menlo",FontPosture.ITALIC,12));
+        GridPane.setHalignment(version, HPos.CENTER);
+        infoLayout.setAlignment(Pos.CENTER);
+        infoLayout.add(copyright,0,0);
+        infoLayout.add(version,0,1);
     }
 
     public void resize(Number width, Number height){
@@ -94,7 +118,8 @@ public class SettingGroup extends StackPane {
         hBox.setMinWidth(width.doubleValue());
         hBox.setMaxHeight(0);
 
-        setMargin(returnButton,new Insets(0,width.doubleValue()-45,height.doubleValue()-45,0));
+        setMargin(returnButton,new Insets(0,width.doubleValue()-50,height.doubleValue()-50,0));
+        setMargin(infoLayout,new Insets(height.doubleValue()-50,0,0,0));
     }
 
     public SettingGroup(Number height, Number width){
@@ -104,6 +129,6 @@ public class SettingGroup extends StackPane {
         this.setAlignment(Pos.CENTER);
         resize(width,height);
         init();
-        this.getChildren().addAll(root,returnButton, vBox, hBox);
+        this.getChildren().addAll(root, vBox, hBox, infoLayout);
     }
 }
