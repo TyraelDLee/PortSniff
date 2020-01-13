@@ -137,6 +137,7 @@ public class ProgressBar extends GridPane {
      * */
     void reset(){
         this.current.setWidth(0);
+        this.progress = 0;
         this.showProgress.setText("0.0%");
     }
 

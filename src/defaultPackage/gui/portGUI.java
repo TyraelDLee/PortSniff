@@ -138,12 +138,6 @@ public class portGUI extends Application implements Observer {
             }
             //-- Thread status listener end --//
         });
-//        settingButton.setOnMouseExited(event -> rotateAnim(settingButton, false));
-//        settingButton.setOnMouseEntered(event -> rotateAnim(settingButton, true));
-//        settingButton.setOnMouseClicked(event -> {
-//            root.getChildren().add(settingGroup);
-//            settingInOutAnim(settingGroup, true);
-//        });
         menuButton.setOnMouseClicked(event -> {
             if(menuButton.onClick()){
                 //root.getChildren().add(settingGroup);
@@ -154,12 +148,6 @@ public class portGUI extends Application implements Observer {
 
         });
         //-- Setting page component listener start --//
-//        settingGroup.returnButton.setOnMouseClicked(event -> {
-//            settingInOutAnim(settingGroup,false);
-//            //root.getChildren().remove(settingGroup);
-//        });
-//        settingGroup.returnButton.setOnMouseExited(event -> rotateAnim(settingGroup.returnButton, false));
-//        settingGroup.returnButton.setOnMouseEntered(event -> rotateAnim(settingGroup.returnButton, true));
         settingGroup.commonPort.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 settingGroup.runAll.setSelected(false);
@@ -247,10 +235,8 @@ public class portGUI extends Application implements Observer {
         settingGroup.root.setLayoutY(mainStageHeight.doubleValue() * 0.3);
         settingGroup.root.setLayoutX((mainStageWidth.doubleValue() - settingGroup.root.getWidth()) / 2);
         settingGroup.resize(mainStageWidth, mainStageHeight.doubleValue());
-//        if(!showSetting)
-//            settingGroup.setLayoutY(mainStageHeight.doubleValue());
-//        else
-//            settingGroup.setLayoutY(0);
+        if(!showSetting)
+            settingGroup.setLayoutY(mainStageHeight.doubleValue());
 
         address_In.setMinSize(200, 20);
         address_In.setPrefSize(300 * ZOOMFACTOR, 25 * ZOOMFACTOR);

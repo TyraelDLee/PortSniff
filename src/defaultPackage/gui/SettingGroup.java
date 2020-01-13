@@ -41,7 +41,7 @@ public class SettingGroup extends StackPane {
     public RadioButton https = new RadioButton("https");
     private GridPane requestmode = new GridPane();
     private static final Label copyright = new Label("Copyright © 2019 - 2020 Tyrael LI");
-    private static final Label version =   new Label("Version 1.2");
+    private static final Label version =   new Label("Version 1.3");
     private static final Color infoColor = new Color(.5,.5,.5,.8);
     private GridPane infoLayout = new GridPane();
 
