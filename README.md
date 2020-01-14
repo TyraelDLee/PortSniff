@@ -12,3 +12,10 @@ or spcific range.
 
 You also able to set the communication timeout. Timeout default set to 1 second and minimum 500ms, 
 you can set it based on your network conditions to increase the efficiency. 
+
+App also support multi-thread! Yeah! You can enable that in setting page. Tasks will be distributed 
+on threads and run parallel, that could shrink running time dramatically. You need define the number of
+thread you want run once you enable multi-thread.
+
+**This app running in JVM (because it created by Java!). Thus, theoretically the number of thread has no upper bound. 
+However, don't explode your computer! Set a reasonable number based on your hardware.**
