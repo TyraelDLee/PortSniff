@@ -37,6 +37,7 @@ public class PortSniff {
         private int startPort_SUB_THREAD = -1;
         private int endPort_SUB_THREAD = -1;
         private ArrayList<Integer> openPortOnThisThread = new ArrayList<>();
+        private long threadID = 0;
 
         SniffTask() {}
 
@@ -50,6 +51,14 @@ public class PortSniff {
             if (startPort_SUB_THREAD < 1) startPort_SUB_THREAD = 1;
             this.startPort_SUB_THREAD = startPort_SUB_THREAD;
             this.endPort_SUB_THREAD = endPort_SUB_THREAD;
+        }
+
+        SniffTask(long threadID, int startPort_SUB_THREAD, int endPort_SUB_THREAD){
+            if (endPort_SUB_THREAD > 65535) endPort_SUB_THREAD = 65535;
+            if (startPort_SUB_THREAD < 1) startPort_SUB_THREAD = 1;
+            this.startPort_SUB_THREAD = startPort_SUB_THREAD;
+            this.endPort_SUB_THREAD = endPort_SUB_THREAD;
+            this.threadID = threadID;
         }
 
         @Override

@@ -109,6 +109,7 @@ public class ProgressBar extends GridPane {
      */
     void setShowText(double progress) {
         String progressNum = (Math.round(progress * 1000) / 10.0) + "";
+        if(progressNum.contains("100")) progressNum = "100";
         if (progressNum.length() > 4) progressNum = progressNum.substring(0, 4);
         String text = progressNum + "%";
         this.showProgress.setText(text);
@@ -159,8 +160,8 @@ public class ProgressBar extends GridPane {
     void setUpdate(double progress, boolean MT) {
         if (MT) {
             if (progress >= pre_progress) {
+                setUpdate(pre_progress);
                 pre_progress = progress;
-                setUpdate(progress);
             }
         } else {
             setUpdate(progress);

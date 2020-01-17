@@ -46,7 +46,7 @@ public class portGUI extends Application implements Observer {
     private MenuButton menuButton = new MenuButton();
     private MenuBar menuRoot = new MenuBar();
     private Menu fileM = new Menu("File");
-    private Menu editM = new Menu("Edit");
+    private Menu viewM = new Menu("View");
 
     private final Group root = new Group();
 
@@ -118,7 +118,7 @@ public class portGUI extends Application implements Observer {
                     if(t.getProgress()>= currentProgress.get()){
                         synchronized (this){
                             currentProgress.set(t.getProgress());
-                            progressBar.setUpdate(currentProgress.get(), sniff.getNumOfThread()>1);
+                            progressBar.setUpdate(currentProgress.get());
                         }
                     }
                 });
@@ -219,12 +219,8 @@ public class portGUI extends Application implements Observer {
                 sniff.setTimeout(Integer.parseInt(newValue));
         });
 
-        settingGroup.http.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                ht.set("http://");
-        });
-        settingGroup.https.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            ht.set("https://");
-        });
+        settingGroup.http.selectedProperty().addListener((observable, oldValue, newValue) -> ht.set("http://"));
+        settingGroup.https.selectedProperty().addListener((observable, oldValue, newValue) -> ht.set("https://"));
         //-- Setting page component listener end --//
 
         clearButton.setOnMouseEntered(event -> clearButton.setOver(1));
@@ -235,9 +231,11 @@ public class portGUI extends Application implements Observer {
         });
         //-- component listener setting end --//
 
+
+
         //-- Menu selection --//
-        MenuItem test = new MenuItem("Setting");
-        test.setOnAction(event -> {
+        MenuItem Setting = new MenuItem("Setting");
+        Setting.setOnAction(event -> {
             if(menuButton.onClick()){
                 //root.getChildren().add(settingGroup);
                 settingInOutAnim(settingGroup, true);
@@ -245,9 +243,11 @@ public class portGUI extends Application implements Observer {
                 settingInOutAnim(settingGroup, false);
             }
         });
-        //editM.getItems().add(test);
-        fileM.getItems().add(test);
-        menuRoot.getMenus().addAll(fileM,editM);
+        MenuItem analyze = new MenuItem("Analyze");
+        MenuItem portSniff = new MenuItem("Port Sniffer");
+        fileM.getItems().addAll(Setting);
+        viewM.getItems().addAll(analyze,portSniff);
+        menuRoot.getMenus().addAll(fileM, viewM);
         //-- Menu selection --//
 
         root.getChildren().addAll(startButton, clearButton, address_In, showPane, progressBar, settingGroup, menuButton, menuRoot);
