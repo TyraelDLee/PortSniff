@@ -132,3 +132,4 @@ public class SettingGroup extends StackPane {
         this.getChildren().addAll(root, vBox, hBox, infoLayout);
     }
 }
+//todo: add the function for specific port and ports.

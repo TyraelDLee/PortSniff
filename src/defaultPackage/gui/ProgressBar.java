@@ -26,10 +26,11 @@ public class ProgressBar extends GridPane {
     private Rectangle background = new Rectangle();
     private Rectangle current = new Rectangle();
     private Label showProgress = new Label("0.0%");
-    private static final Color defaultBackgroundColor = new Color(.8,.8,.8,.8);
-    private static final Color defaultProgressColor = new Color(.16,.4,.82,1);
+    private static final Color defaultBackgroundColor = new Color(.8, .8, .8, .8);
+    private static final Color defaultProgressColor = new Color(.16, .4, .82, 1);
 
-    ProgressBar(){}
+    ProgressBar() {
+    }
 
     /**
      * This constructor set a basic progress bar with height, width but
@@ -39,9 +40,9 @@ public class ProgressBar extends GridPane {
      * {@code new Color(.16,.4,.82,1)}. The default arc width, height is 10.
      *
      * @param height button height
-     * @param width button width
-     * */
-    ProgressBar(double width, double height){
+     * @param width  button width
+     */
+    ProgressBar(double width, double height) {
         this.setHgap(5);
         this.progressField.setAlignment(Pos.CENTER_LEFT);
         this.height = height;
@@ -53,7 +54,7 @@ public class ProgressBar extends GridPane {
         this.background.setFill(defaultBackgroundColor);
         this.current.setFill(defaultProgressColor);
         progressField.getChildren().addAll(background, current);
-        this.add(progressField,0,0);
+        this.add(progressField, 0, 0);
     }
 
     /**
@@ -63,11 +64,11 @@ public class ProgressBar extends GridPane {
      * {@code new Color(.8, .8, .8, .8)}. And the progress bar with
      * {@code new Color(.16,.4,.82,1)}. The default arc width, height is 10.
      *
-     * @param height button height
-     * @param width button width
+     * @param height   button height
+     * @param width    button width
      * @param showText define the show progress in text or not
-     * */
-    ProgressBar(double width, double height, boolean showText){
+     */
+    ProgressBar(double width, double height, boolean showText) {
         this.setHgap(5);
         this.progressField.setAlignment(Pos.CENTER_LEFT);
         this.height = height;
@@ -80,11 +81,11 @@ public class ProgressBar extends GridPane {
         this.background.setFill(defaultBackgroundColor);
         this.current.setFill(defaultProgressColor);
         progressField.getChildren().addAll(background, current);
-        if(!showText)
-            this.add(progressField,0,0);
-        else{
-            this.add(progressField,0,0);
-            this.add(showProgress,1,0);
+        if (!showText)
+            this.add(progressField, 0, 0);
+        else {
+            this.add(progressField, 0, 0);
+            this.add(showProgress, 1, 0);
         }
     }
 
@@ -94,7 +95,7 @@ public class ProgressBar extends GridPane {
      *
      * @param X the point at x-axis
      * @param Y the point at y-axis
-     * */
+     */
     void setLocation(double X, double Y) {
         this.setLayoutX(X);
         this.setLayoutY(Y);
@@ -105,10 +106,10 @@ public class ProgressBar extends GridPane {
      * Set progress to label text.
      *
      * @param progress the current progress from the object which have progress
-     * */
-    void setShowText(double progress){
-        String progressNum = (Math.round(progress * 1000) / 10.0)+"";
-        if(progressNum.length()>4) progressNum = progressNum.substring(0,4);
+     */
+    void setShowText(double progress) {
+        String progressNum = (Math.round(progress * 1000) / 10.0) + "";
+        if (progressNum.length() > 4) progressNum = progressNum.substring(0, 4);
         String text = progressNum + "%";
         this.showProgress.setText(text);
     }
@@ -117,16 +118,16 @@ public class ProgressBar extends GridPane {
      * Set the size for button. Also called for resize the button
      * by {@code resize()} in {@code main gui class}.
      *
-     * @param width the width for this component
+     * @param width  the width for this component
      * @param height the height for this component
-     * */
+     */
     void setSize(double width, double height) {
         this.width = width;
         this.height = height;
-        if(!this.showText)
+        if (!this.showText)
             this.background.setWidth(width);
         else
-            this.background.setWidth(width-50);
+            this.background.setWidth(width - 50);
         setUpdate();
         this.background.setHeight(height);
         this.current.setHeight(height);
@@ -134,8 +135,8 @@ public class ProgressBar extends GridPane {
 
     /**
      * Set progress to progress 0
-     * */
-    void reset(){
+     */
+    void reset() {
         this.current.setWidth(0);
         this.progress = 0;
         this.showProgress.setText("0.0%");
@@ -145,18 +146,32 @@ public class ProgressBar extends GridPane {
      * Update the progress bar run when the progress updated
      * from the object.
      *
-     * @param progress the new progress from object*/
-    void setUpdate(double progress){
+     * @param progress the new progress from object
+     */
+    void setUpdate(double progress) {
         this.progress = progress;
-        this.current.setWidth(this.background.getWidth()*progress);
-        if(this.showText) setShowText(progress);
+        this.current.setWidth(this.background.getWidth() * progress);
+        if (this.showText) setShowText(progress);
+    }
+
+    double pre_progress = 0.0;
+
+    void setUpdate(double progress, boolean MT) {
+        if (MT) {
+            if (progress >= pre_progress) {
+                pre_progress = progress;
+                setUpdate(progress);
+            }
+        } else {
+            setUpdate(progress);
+        }
     }
 
     /**
      * Inner method. Used for reset the size when main stage size changed.
-     * */
-    private void setUpdate(){
-        this.current.setWidth(this.background.getWidth()*this.progress);
+     */
+    private void setUpdate() {
+        this.current.setWidth(this.background.getWidth() * this.progress);
     }
 
     public double getComponentWidth() {
@@ -168,10 +183,10 @@ public class ProgressBar extends GridPane {
      * Set the Arc width, height to the progress bar.
      * Width should == Height.
      *
-     * @param width the new value for arc width
+     * @param width  the new value for arc width
      * @param height the new value for arc height
-     * */
-    void setArc(double width, double height){
+     */
+    void setArc(double width, double height) {
         this.background.setArcWidth(width);
         this.background.setArcHeight(height);
         this.current.setArcWidth(width);
@@ -184,16 +199,16 @@ public class ProgressBar extends GridPane {
      * This method will override the default color which
      * defined in constructors. This method also may called
      * in listener for change color dynamically.
-     *
+     * <p>
      * The color value rage is 0.0 ~ 1.0
      *
      * @param r the red channel for bar color
      * @param g the green channel for bar color
      * @param b the blue channel for bar color
      * @param a the alpha channel for bar color
-     * */
-    void setColor(double r, double g, double b, double a){
-        Color progressColor = new Color(r,g,b,a);
+     */
+    void setColor(double r, double g, double b, double a) {
+        Color progressColor = new Color(r, g, b, a);
         this.current.setFill(progressColor);
     }
 
@@ -203,16 +218,16 @@ public class ProgressBar extends GridPane {
      * This method will override the default color which
      * defined in constructors. This method also may called
      * in listener for change color dynamically.
-     *
+     * <p>
      * The color value rage is 0.0 ~ 1.0
      *
      * @param r the red channel for background color
      * @param g the green channel for background color
      * @param b the blue channel for background color
      * @param a the alpha channel for background color
-     * */
-    void setBackgroundColor(double r, double g, double b, double a){
-        Color backgroundColor = new Color(r,g,b,a);
+     */
+    void setBackgroundColor(double r, double g, double b, double a) {
+        Color backgroundColor = new Color(r, g, b, a);
         this.background.setFill(backgroundColor);
     }
 }

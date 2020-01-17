@@ -9,13 +9,14 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+//import org.hyperic.sigar.*;
 
 /**************************************************************************
  *                                                                        *
@@ -43,6 +44,9 @@ public class portGUI extends Application implements Observer {
     private PortSniff sniff = new PortSniff();
     private ProgressBar progressBar = new ProgressBar(WINDOW_WIDTH-100, 5, true);
     private MenuButton menuButton = new MenuButton();
+    private MenuBar menuRoot = new MenuBar();
+    private Menu fileM = new Menu("File");
+    private Menu editM = new Menu("Edit");
 
     private final Group root = new Group();
 
@@ -58,6 +62,9 @@ public class portGUI extends Application implements Observer {
     }
 
     public void start(Stage primaryStage) throws Exception {
+        //Sigar sigar = new Sigar();
+        System.setProperty("apple.laf.useScreenMenuBar","true");
+        menuRoot.setUseSystemMenuBar(true);
         AtomicReference<String> ht = new AtomicReference<>("http://");
         primaryStage.setTitle("Port scanner");
         primaryStage.setMinHeight(420);
@@ -111,7 +118,7 @@ public class portGUI extends Application implements Observer {
                     if(t.getProgress()>= currentProgress.get()){
                         synchronized (this){
                             currentProgress.set(t.getProgress());
-                            progressBar.setUpdate(currentProgress.get());
+                            progressBar.setUpdate(currentProgress.get(), sniff.getNumOfThread()>1);
                         }
                     }
                 });
@@ -178,8 +185,11 @@ public class portGUI extends Application implements Observer {
             }
         });
         settingGroup.mtcheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue)
+            if (newValue){
                 settingGroup.numOfMT.setDisable(false);
+                if(convertToInt(settingGroup.numOfMT.getText()))
+                    sniff.setNoOfThread(Integer.parseInt(settingGroup.numOfMT.getText()));
+            }
             else {
                 settingGroup.numOfMT.setDisable(true);
                 sniff.setNoOfThread(1);
@@ -225,7 +235,22 @@ public class portGUI extends Application implements Observer {
         });
         //-- component listener setting end --//
 
-        root.getChildren().addAll(startButton, clearButton, address_In, showPane, progressBar, settingGroup, menuButton);
+        //-- Menu selection --//
+        MenuItem test = new MenuItem("Setting");
+        test.setOnAction(event -> {
+            if(menuButton.onClick()){
+                //root.getChildren().add(settingGroup);
+                settingInOutAnim(settingGroup, true);
+            }else{
+                settingInOutAnim(settingGroup, false);
+            }
+        });
+        //editM.getItems().add(test);
+        fileM.getItems().add(test);
+        menuRoot.getMenus().addAll(fileM,editM);
+        //-- Menu selection --//
+
+        root.getChildren().addAll(startButton, clearButton, address_In, showPane, progressBar, settingGroup, menuButton, menuRoot);
         primaryStage.setScene(mainStage);
         primaryStage.show();
     }
@@ -326,3 +351,4 @@ public class portGUI extends Application implements Observer {
     }
 }
 //todo: add the pulse/restart feature for sub-threads.
+//todo: get server information. and fix sigar.

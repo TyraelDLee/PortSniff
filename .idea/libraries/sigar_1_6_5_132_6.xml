@@ -1,6 +1,5 @@
 <component name="libraryTable">
-  <library name="org.hyperic:sigar:1.6.5.132-6" type="repository">
-    <properties maven-id="org.hyperic:sigar:1.6.5.132-6" />
+  <library name="sigar-1.6.5.132-6">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/sigar-1.6.5.132-6.jar!/" />
     </CLASSES>
