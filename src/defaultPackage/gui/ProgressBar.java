@@ -163,9 +163,8 @@ public class ProgressBar extends GridPane {
                 setUpdate(pre_progress);
                 pre_progress = progress;
             }
-        } else {
+        } else
             setUpdate(progress);
-        }
     }
 
     /**

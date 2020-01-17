@@ -53,6 +53,7 @@ public class portSnf extends Thread{
 
                 s = new Socket(target_path.getHost(),i);
                 s.setSoTimeout(100);
+                System.out.println(s.getInetAddress().getHostAddress());
                 openPorts.add(i);
                 s.close();
             }catch (MalformedURLException m){
