@@ -77,17 +77,16 @@ public class ServerAnalysis {
     void analysisSocket() {
         try{
             if(isHttps){
-                socket = (SSLSocket)((SSLSocketFactory)SSLSocketFactory.getDefault()).createSocket(this.host, 443);
+                socket = (SSLSocketFactory.getDefault()).createSocket(this.host, 443);
             }else{
-                SocketAddress dest = new InetSocketAddress(this.host, this.port);
-                socket.connect(dest);
+                SocketAddress dest = new InetSocketAddress(this.host, 80);
+                socket = new Socket(this.host,this.port);
+                //socket.connect(dest,1000);
             }
-
-            String requestUrlPath = "/";
 
             OutputStreamWriter streamWriter = new OutputStreamWriter(socket.getOutputStream());
             BufferedWriter bufferedWriter = new BufferedWriter(streamWriter);
-            bufferedWriter.write("GET " + requestUrlPath + " HTTP/1.1\r\n");
+            bufferedWriter.write("GET / HTTP/1.1\r\n");
             bufferedWriter.write("Host: " + this.host + "\r\n");
             bufferedWriter.write("\r\n");
             bufferedWriter.flush();
@@ -127,17 +126,18 @@ public class ServerAnalysis {
         }else{
             System.out.println("IPv6");
             int[] segment = new int[8];
-//            for (int i = 0; i < ipSegment.length; i++) {
-//                segment[i] = Integer.parseInt(ipSegment[i]);
-//            }
+            for (int i = 0; i < ipSegment.length; i++) {
+                segment[i] = Integer.parseUnsignedInt(ipSegment[i],16);
+                System.out.println(segment[i]);
+            }
         }
     }
 
 
     public static void main(String[] args) {
-        ServerAnalysis analyser = new ServerAnalysis();
-        analyser.setHttps(true);
-        analyser.setAddress("www.taobao.com");
+        ServerAnalysis analyser = new ServerAnalysis("www.taobao.com",true);
+//        analyser.setHttps(false);
+//        analyser.setAddress("www.baidu.com");
         System.out.println(analyser.formatString("www.taobao.com"));
         analyser.analysisSocket();
     }

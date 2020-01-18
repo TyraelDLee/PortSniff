@@ -105,7 +105,7 @@ public class PortSniff {
 
         @Override
         protected void cancelled() {
-            updateMessage("Cancelled!");
+            updateMessage("Cancelled");
         }
 
         @Override

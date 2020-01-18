@@ -2,7 +2,10 @@ package defaultPackage.gui;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
 /**************************************************************************
@@ -21,12 +24,26 @@ public class ShowPane extends ScrollPane {
     private int RowIndex = 0;
     private static final int MAX_ITEM = 2550;
 
+    /**
+     * If you use thi component under JavaFX 8 style.
+     * You might need additional stylesheet to remove
+     * the useless LIGHT GREY background color
+     *
+     * {@code .show-pane {
+     *     -fx-background-color: transparent;
+     * }
+     * }
+     * then add this in your main class{
+     * @code showPane.getStyleClass().add("show-pane");
+     * mainStage.getStylesheets().add(getClass().getResource("YOUR STYLESHEET FILE").toExternalForm());
+     * }*/
     ShowPane(){}
 
     ShowPane(double width, double height){
         this.width = width;
         this.height = height;
         setSize(width, height);
+
     }
 
     void setLocation(double X, double Y) {

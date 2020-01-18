@@ -1,5 +1,6 @@
 package defaultPackage.gui;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import defaultPackage.*;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -10,13 +11,13 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-//import org.hyperic.sigar.*;
 
 /**************************************************************************
  *                                                                        *
@@ -31,18 +32,18 @@ public class portGUI extends Application implements Observer {
     private static final double WINDOW_HEIGHT = 500.0;
     private static final double WINDOW_WIDTH = 800.0;
     private static double ZOOMFACTOR = 1;
+    private static final String ints = "0123456789";
+    private static final String title = "Port scanner";
+
+    private PortSniff sniff = new PortSniff();
     private Number mainStageHeight = WINDOW_HEIGHT, mainStageWidth = WINDOW_WIDTH;
     private String address = "";
-    private static final String Img_address = "defaultPackage/asset/^name.png";
-    private static final String ints = "0123456789";
-
+    private AtomicReference<String> ht = new AtomicReference<>("http://");
     private TextField address_In = new TextField();
     private ImageButton startButton = new ImageButton(100, 80, "Start", .95, .82, .38, .8);
-    private ImageButton clearButton = new ImageButton(100, 80, "Clear");
-    //private ImageButton settingButton = new ImageButton(25, 25, new Image(Img_address.replace("^name", "setting")));
+    private ImageButton clearButton = new ImageButton(100, 80, "Cancel");
     private ShowPane showPane = new ShowPane(WINDOW_WIDTH, WINDOW_HEIGHT - 150);
-    private PortSniff sniff = new PortSniff();
-    private ProgressBar progressBar = new ProgressBar(WINDOW_WIDTH-100, 5, true);
+    private ProgressBar progressBar = new ProgressBar(WINDOW_WIDTH - 100, 5, true);
     private MenuButton menuButton = new MenuButton();
     private MenuBar menuRoot = new MenuBar();
     private Menu fileM = new Menu("File");
@@ -55,22 +56,18 @@ public class portGUI extends Application implements Observer {
 
     private void setZoomFactor(Number mainStageWidth, Number mainStageHeight) {
         double width = mainStageWidth.doubleValue() / WINDOW_WIDTH, height = mainStageHeight.doubleValue() / WINDOW_HEIGHT;
-        if (width < height)
-            ZOOMFACTOR = Math.round(width * 100.0) / 100.0;
-        else
-            ZOOMFACTOR = Math.round(height * 100.0) / 100.0;
+        if (width < height) ZOOMFACTOR = Math.round(width * 100.0) / 100.0;
+        else ZOOMFACTOR = Math.round(height * 100.0) / 100.0;
     }
 
     public void start(Stage primaryStage) throws Exception {
-        //Sigar sigar = new Sigar();
-        System.setProperty("apple.laf.useScreenMenuBar","true");
-        menuRoot.setUseSystemMenuBar(true);
-        AtomicReference<String> ht = new AtomicReference<>("http://");
-        primaryStage.setTitle("Port scanner");
+        primaryStage.setTitle(title);
         primaryStage.setMinHeight(420);
         primaryStage.setMinWidth(720);
         Scene mainStage = new Scene(root, mainStageWidth.doubleValue(), mainStageHeight.doubleValue());
         sniff.reg(this);
+
+        menuRoot.setUseSystemMenuBar(true);
         //-- resize listener start  --//
         mainStage.heightProperty().addListener((observable, oldValue, newValue) -> {
             mainStageHeight = newValue;
@@ -87,72 +84,22 @@ public class portGUI extends Application implements Observer {
         //-- component initial start --//
         resize();
         address_In.setPromptText("web URL or IP. e.g. www.foo.com or 127.0.0.1");
-
         sniff.setTimeout(1000);
         sniff.setNoOfThread(1);
         settingGroup.setLayoutY(mainStageHeight.doubleValue());
         //-- component initial end --//
 
         //-- component listener setting start --//
+        address_In.setOnKeyReleased(event -> {
+            if (event.getCode() == KeyCode.ENTER && address_In.getText().contains("."))
+                sniffRun(primaryStage);
+        });
         startButton.setOnMouseEntered(event -> startButton.setOver(1.0));
         startButton.setOnMouseExited(event -> startButton.setOver(0.8));
-        startButton.setOnMouseClicked(event -> {
-            progressBar.reset();
-            startButton.setDisable(true);
-            ArrayList<Boolean> allDone = new ArrayList<>();
-            ArrayList<Integer> openPorts = new ArrayList<>();
-            address = ht+address_In.getText();
-            System.out.println(address);
-            showPane.setContext(address);
-            sniff.setURL(address);
-            final long startTimeStamp = System.currentTimeMillis();
-            //set the sniffer attributes.
-            sniff.distributeWorker();
-            System.out.println("size: " + sniff.WORKERS.size());
-            int threads = 1;
-            //-- Thread status listener start --//
-            for (PortSniff.SniffTask t : sniff.WORKERS) {
-                int finalThreads = threads;
-                AtomicReference<Double> currentProgress = new AtomicReference<>((double) 0);
-                t.progressProperty().addListener((observable, oldValue, newValue) -> {
-                    if(t.getProgress()>= currentProgress.get()){
-                        synchronized (this){
-                            currentProgress.set(t.getProgress());
-                            progressBar.setUpdate(currentProgress.get());
-                        }
-                    }
-                });
-                t.messageProperty().addListener((observable, oldValue, newValue) -> {
-                    if (newValue.equals("ThreadFinished")) {
-                        allDone.add(true);
-                        System.out.println("Thread " + finalThreads + " done!");
-                        openPorts.addAll(t.getOpenPortOnThisThread());
-                    }
-                    if (allDone.size() == sniff.getNumOfThread()) {
-                        long endTimeStamp = System.currentTimeMillis();
-                        String openedPort = "\r\nPorts opened: \r\n";
-                        if(openPorts.size()<1)
-                            openedPort+="none...";
-                        for (int port : openPorts) {
-                            openedPort += port + " ";
-                        }
-                        showPane.setContext(openedPort);
-                        showPane.setContext("Total use "+ getTime((endTimeStamp-startTimeStamp)/1000.0));
-                        startButton.setDisable(false);
-                    }
-                });
-                threads++;
-            }
-            //-- Thread status listener end --//
-        });
+        startButton.setOnMouseClicked(event -> sniffRun(primaryStage));
         menuButton.setOnMouseClicked(event -> {
-            if(menuButton.onClick()){
-                //root.getChildren().add(settingGroup);
-                settingInOutAnim(settingGroup, true);
-            }else{
-                settingInOutAnim(settingGroup, false);
-            }
-
+            if (menuButton.onClick()) settingInOutAnim(settingGroup, true);
+            else settingInOutAnim(settingGroup, false);
         });
         //-- Setting page component listener start --//
         settingGroup.commonPort.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -185,12 +132,11 @@ public class portGUI extends Application implements Observer {
             }
         });
         settingGroup.mtcheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue){
+            if (newValue) {
                 settingGroup.numOfMT.setDisable(false);
-                if(convertToInt(settingGroup.numOfMT.getText()))
+                if (convertToInt(settingGroup.numOfMT.getText()))
                     sniff.setNoOfThread(Integer.parseInt(settingGroup.numOfMT.getText()));
-            }
-            else {
+            } else {
                 settingGroup.numOfMT.setDisable(true);
                 sniff.setNoOfThread(1);
             }
@@ -226,32 +172,36 @@ public class portGUI extends Application implements Observer {
         clearButton.setOnMouseEntered(event -> clearButton.setOver(1));
         clearButton.setOnMouseExited(event -> clearButton.setOver(0.8));
         clearButton.setOnMouseClicked(event -> {
-            showPane.clear();
-            progressBar.reset();
+            startButton.setDisable(false);
+            for(PortSniff.SniffTask s : sniff.WORKERS){
+                s.cancel();
+            }
+//            showPane.clear();
+//            progressBar.reset();
         });
         //-- component listener setting end --//
-
 
 
         //-- Menu selection --//
         MenuItem Setting = new MenuItem("Setting");
         Setting.setOnAction(event -> {
-            if(menuButton.onClick()){
+            if (menuButton.onClick()) {
                 //root.getChildren().add(settingGroup);
                 settingInOutAnim(settingGroup, true);
-            }else{
+            } else {
                 settingInOutAnim(settingGroup, false);
             }
         });
         MenuItem analyze = new MenuItem("Analyze");
         MenuItem portSniff = new MenuItem("Port Sniffer");
         fileM.getItems().addAll(Setting);
-        viewM.getItems().addAll(analyze,portSniff);
+        viewM.getItems().addAll(analyze, new SeparatorMenuItem(), portSniff);
         menuRoot.getMenus().addAll(fileM, viewM);
         //-- Menu selection --//
 
         root.getChildren().addAll(startButton, clearButton, address_In, showPane, progressBar, settingGroup, menuButton, menuRoot);
         primaryStage.setScene(mainStage);
+        mainStage.getStylesheets().add(getClass().getResource("css/style.css").toExternalForm());
         primaryStage.show();
     }
 
@@ -260,7 +210,7 @@ public class portGUI extends Application implements Observer {
         settingGroup.root.setLayoutY(mainStageHeight.doubleValue() * 0.3);
         settingGroup.root.setLayoutX((mainStageWidth.doubleValue() - settingGroup.root.getWidth()) / 2);
         settingGroup.resize(mainStageWidth, mainStageHeight.doubleValue());
-        if(!showSetting)
+        if (!showSetting)
             settingGroup.setLayoutY(mainStageHeight.doubleValue());
 
         address_In.setMinSize(200, 20);
@@ -269,7 +219,7 @@ public class portGUI extends Application implements Observer {
         address_In.setLayoutY(20);
 
         //settingButton.setLocation(50, 20);
-        menuButton.setLocation(50,25);
+        menuButton.setLocation(50, 25);
         startButton.setLocation((mainStageWidth.doubleValue() + address_In.getPrefWidth()) / 2 + 50 - 100, 20);
         if (25 * ZOOMFACTOR <= 20) startButton.setSize(100, 20);
         else startButton.setSize(100, 25 * ZOOMFACTOR);
@@ -278,11 +228,11 @@ public class portGUI extends Application implements Observer {
         if (25 * ZOOMFACTOR <= 20) clearButton.setSize(100, 20);
         else clearButton.setSize(100, 25 * ZOOMFACTOR);
 
-        showPane.setSize(mainStageWidth.doubleValue()-50, mainStageHeight.doubleValue() - 200);
+        showPane.setSize(mainStageWidth.doubleValue() - 50, mainStageHeight.doubleValue() - 200);
         showPane.setLocation(25, 150);
 
-        progressBar.setSize(mainStageWidth.doubleValue()-100, 5);
-        progressBar.setLocation(mainStageWidth.doubleValue() / 2 - progressBar.getComponentWidth() / 2, mainStageHeight.doubleValue()-30);
+        progressBar.setSize(mainStageWidth.doubleValue() - 100, 5);
+        progressBar.setLocation(mainStageWidth.doubleValue() / 2 - progressBar.getComponentWidth() / 2, mainStageHeight.doubleValue() - 30);
     }
 
     @Override
@@ -337,17 +287,80 @@ public class portGUI extends Application implements Observer {
         else return true;
     }
 
-    private String getTime(double duration){
-        int h,m,s;
-        h = (int)duration/3600;
-        m = ((int)duration/60)%60;
-        s = (int)duration%60;
+    private String getTime(double duration) {
+        int h, m, s;
+        h = (int) duration / 3600;
+        m = ((int) duration / 60) % 60;
+        s = (int) duration % 60;
         String time = "^h hours ^m minutes ^s seconds.";
-        time = time.replace("^h",h+"").replace("^m",m+"").replace("^s",s+"");
-        time = h==1?time.replace("hours","hour"):time;
-        time = m==1?time.replace("minutes","minute"):time;
-        time = s==1?time.replace("seconds","second"):time;
+        time = time.replace("^h", h + "").replace("^m", m + "").replace("^s", s + "");
+        time = h == 1 ? time.replace("hours", "hour") : time;
+        time = m == 1 ? time.replace("minutes", "minute") : time;
+        time = s == 1 ? time.replace("seconds", "second") : time;
         return time;
+    }
+
+    private void sniffRun(Stage primaryStage) {
+        primaryStage.setTitle(title+" Sniffing...");
+        showPane.clear();
+        progressBar.reset();
+        startButton.setDisable(true);
+        ArrayList<Boolean> allDone = new ArrayList<>();
+        ArrayList<Integer> openPorts = new ArrayList<>();
+        ArrayList<Boolean> allCancel = new ArrayList<>();
+        address = ht + address_In.getText();
+        System.out.println(address);
+        showPane.setContext(address);
+        sniff.setURL(address);
+        final long startTimeStamp = System.currentTimeMillis();
+        //set the sniffer attributes.
+        sniff.distributeWorker();
+        System.out.println("size: " + sniff.WORKERS.size());
+        int threads = 1;
+        //-- Thread status listener start --//
+        for (PortSniff.SniffTask t : sniff.WORKERS) {
+            int finalThreads = threads;
+            AtomicReference<Double> currentProgress = new AtomicReference<>((double) 0);
+            t.progressProperty().addListener((observable, oldValue, newValue) -> {
+                if (t.getProgress() >= currentProgress.get() && allCancel.size()<1) {
+                        currentProgress.set(t.getProgress());
+                        progressBar.setUpdate(currentProgress.get());
+                }
+            });
+            t.messageProperty().addListener((observable, oldValue, newValue) -> {
+                if(newValue.equals("Cancelled"))
+                    allCancel.add(true);
+                if(allCancel.size()==sniff.getNumOfThread()){
+
+                    primaryStage.setTitle(title);
+                    //getReport(primaryStage,openPorts,startTimeStamp);
+                }
+                if (newValue.equals("ThreadFinished")) {
+                    allDone.add(true);
+                    System.out.println("Thread " + finalThreads + " done!");
+                    openPorts.addAll(t.getOpenPortOnThisThread());
+                }
+                if (allDone.size() == sniff.getNumOfThread()) {
+                    getReport(primaryStage,openPorts,startTimeStamp);
+                }
+            });
+            threads++;
+        }
+        //-- Thread status listener end --//
+    }
+
+    private void getReport(Stage primaryStage, ArrayList<Integer> openPorts, long startTimeStamp){
+        long endTimeStamp = System.currentTimeMillis();
+        String openedPort = "\r\nPorts opened: \r\n";
+        if (openPorts.size() < 1)
+            openedPort += "none...";
+        for (int port : openPorts) {
+            openedPort += port + " ";
+        }
+        showPane.setContext(openedPort);
+        showPane.setContext("Total use " + getTime((endTimeStamp - startTimeStamp) / 1000.0));
+        startButton.setDisable(false);
+        primaryStage.setTitle(title);
     }
 }
 //todo: add the pulse/restart feature for sub-threads.
