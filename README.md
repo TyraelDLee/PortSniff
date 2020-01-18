@@ -21,5 +21,5 @@ thread you want run once you enable multi-thread.
 However, don't explode your computer! Set a reasonable number based on your hardware.**
 
 ## Download
-Download the jar for cross-platform [here](https://github.com/TyraelDLee/PortSniff/releases/tag/v1.3).
-<br>Download the macOS app [here](https://github.com/TyraelDLee/PortSniff/releases/tag/v1.3-mac).
+Download the jar for cross-platform [here](https://github.com/TyraelDLee/PortSniff/releases/tag/v1.6).
+<br>Download the macOS app [here](https://github.com/TyraelDLee/PortSniff/releases/tag/v1.6-mac).
