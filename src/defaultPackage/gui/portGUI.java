@@ -1,6 +1,5 @@
 package defaultPackage.gui;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import defaultPackage.*;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -87,6 +86,8 @@ public class portGUI extends Application implements Observer {
         sniff.setTimeout(1000);
         sniff.setNoOfThread(1);
         settingGroup.setLayoutY(mainStageHeight.doubleValue());
+        //set style//
+        address_In.setStyle("-fx-background-color: transparent;-fx-border-style: solid;-fx-border-width: 0 0 2 0;-fx-border-color: #999999;");
         //-- component initial end --//
 
         //-- component listener setting start --//
@@ -176,8 +177,6 @@ public class portGUI extends Application implements Observer {
             for(PortSniff.SniffTask s : sniff.WORKERS){
                 s.cancel();
             }
-//            showPane.clear();
-//            progressBar.reset();
         });
         //-- component listener setting end --//
 
@@ -198,10 +197,9 @@ public class portGUI extends Application implements Observer {
         viewM.getItems().addAll(analyze, new SeparatorMenuItem(), portSniff);
         menuRoot.getMenus().addAll(fileM, viewM);
         //-- Menu selection --//
-
+        //mainStage.getStylesheets().add(getClass().getResource("css/style.css").toExternalForm());
         root.getChildren().addAll(startButton, clearButton, address_In, showPane, progressBar, settingGroup, menuButton, menuRoot);
         primaryStage.setScene(mainStage);
-        mainStage.getStylesheets().add(getClass().getResource("css/style.css").toExternalForm());
         primaryStage.show();
     }
 
@@ -301,7 +299,7 @@ public class portGUI extends Application implements Observer {
     }
 
     private void sniffRun(Stage primaryStage) {
-        primaryStage.setTitle(title+" Sniffing...");
+        primaryStage.setTitle(title+" running...");
         showPane.clear();
         progressBar.reset();
         startButton.setDisable(true);
@@ -328,21 +326,14 @@ public class portGUI extends Application implements Observer {
                 }
             });
             t.messageProperty().addListener((observable, oldValue, newValue) -> {
-                if(newValue.equals("Cancelled"))
-                    allCancel.add(true);
-                if(allCancel.size()==sniff.getNumOfThread()){
-
-                    primaryStage.setTitle(title);
-                    //getReport(primaryStage,openPorts,startTimeStamp);
-                }
+                if(newValue.equals("Cancelled")) allCancel.add(true);
+                if(allCancel.size()==sniff.getNumOfThread()) primaryStage.setTitle(title);
                 if (newValue.equals("ThreadFinished")) {
                     allDone.add(true);
                     System.out.println("Thread " + finalThreads + " done!");
                     openPorts.addAll(t.getOpenPortOnThisThread());
                 }
-                if (allDone.size() == sniff.getNumOfThread()) {
-                    getReport(primaryStage,openPorts,startTimeStamp);
-                }
+                if (allDone.size() == sniff.getNumOfThread()) getReport(primaryStage,openPorts,startTimeStamp);
             });
             threads++;
         }
@@ -352,11 +343,8 @@ public class portGUI extends Application implements Observer {
     private void getReport(Stage primaryStage, ArrayList<Integer> openPorts, long startTimeStamp){
         long endTimeStamp = System.currentTimeMillis();
         String openedPort = "\r\nPorts opened: \r\n";
-        if (openPorts.size() < 1)
-            openedPort += "none...";
-        for (int port : openPorts) {
-            openedPort += port + " ";
-        }
+        if (openPorts.size() < 1) openedPort += "none...";
+        for (int port : openPorts) openedPort += port + " ";
         showPane.setContext(openedPort);
         showPane.setContext("Total use " + getTime((endTimeStamp - startTimeStamp) / 1000.0));
         startButton.setDisable(false);

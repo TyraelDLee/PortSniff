@@ -209,4 +209,12 @@ public class MenuButton extends StackPane {
             rotatePT.setOnFinished(event -> pt.play());
         }
     }
+
+    void setTheme(String style){
+        if(style.equals("DARK")){
+            this.up.setFill(Color.WHITE);
+            this.md.setFill(Color.WHITE);
+            this.dw.setFill(Color.WHITE);
+        }
+    }
 }

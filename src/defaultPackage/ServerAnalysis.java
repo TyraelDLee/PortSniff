@@ -135,7 +135,7 @@ public class ServerAnalysis {
 
 
     public static void main(String[] args) {
-        ServerAnalysis analyser = new ServerAnalysis("www.taobao.com",true);
+        ServerAnalysis analyser = new ServerAnalysis("192.168.1.1",false);
 //        analyser.setHttps(false);
 //        analyser.setAddress("www.baidu.com");
         System.out.println(analyser.formatString("www.taobao.com"));

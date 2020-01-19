@@ -16,7 +16,7 @@ import java.util.ArrayList;
  *                            @version 1.0                                *
  **************************************************************************/
 public class PortSniff {
-    private final static int[] commonPort = {21, 23, 25, 80, 110, 139, 443, 1433, 1521, 3389, 8080};
+    private final static int[] commonPort = {21, 23, 25, 80, 110, 139, 443, 1433, 1521, 3306, 3389, 8080};
 
     private String address;
     private int[] ports = new int[]{};

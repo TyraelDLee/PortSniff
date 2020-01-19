@@ -23,9 +23,11 @@ public class ShowPane extends ScrollPane {
     private Label context = new Label();
     private int RowIndex = 0;
     private static final int MAX_ITEM = 2550;
+    public static final String TRANSPARENT = "show-pane-transparent";
+    public static final String DARK = "show-pane-dark";
 
     /**
-     * If you use thi component under JavaFX 8 style.
+     * If you use this component under JavaFX 8 style.
      * You might need additional stylesheet to remove
      * the useless LIGHT GREY background color
      *
@@ -75,5 +77,16 @@ public class ShowPane extends ScrollPane {
     void clear(){
         this.RowIndex = 0;
         contextPane.getChildren().clear();
+    }
+
+    /**
+     * Set the color theme for background.
+     * Could be transparent, dark or default.
+     *
+     * @param style a style relate to css file.
+     * */
+    void setTheme(String style){
+        this.getStyleClass().add(style);
+        this.getStylesheets().add(getClass().getResource("css/style.css").toExternalForm());
     }
 }
