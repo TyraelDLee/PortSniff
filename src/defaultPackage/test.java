@@ -37,6 +37,8 @@ public class test {
         m = ((int)duration/60)%60;
         s = (int)duration%60;
         System.out.println(h+" "+m+" "+s+" ");
+        String te = "test String for substring index";
+        System.out.println(te.indexOf("String"));
     }
 
     private static double getCurrentProgress(int current, int total){

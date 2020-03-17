@@ -16,7 +16,7 @@ import java.util.ArrayList;
  *                            @version 1.0                                *
  **************************************************************************/
 public class PortSniff {
-    private final static int[] commonPort = {21, 23, 25, 80, 110, 139, 443, 1433, 1521, 3306, 3389, 8080};
+    private final static int[] commonPort = {21, 23, 25, 80, 110, 139, 443, 1433, 1521, 3306, 3389, 5432, 8080};
 
     private String address;
     private int[] ports = new int[]{};
@@ -105,6 +105,7 @@ public class PortSniff {
 
         @Override
         protected void cancelled() {
+            System.out.println("Thread"+this.threadID+" cancelled");
             updateMessage("Cancelled");
         }
 
@@ -115,6 +116,14 @@ public class PortSniff {
 
         public ArrayList<Integer> getOpenPortOnThisThread(){
             return this.openPortOnThisThread;
+        }
+
+        public void setThreadID(long id){
+            this.threadID = id;
+        }
+
+        public long getThreadID(){
+            return this.threadID;
         }
 
         /**
@@ -220,6 +229,7 @@ public class PortSniff {
     public int getNumOfThread(){
         return this.numOfThread;
     }
+
     public void clearPorts(){
         this.ports = new int[]{};
     }
@@ -260,6 +270,7 @@ public class PortSniff {
         for (int i = 1; i <= this.numOfThread; i++) {
             //System.out.println(start + " " + end);
             SniffTask sniffTask = new SniffTask(start, end);
+            sniffTask.setThreadID(i);
             WORKERS.add(sniffTask);
             new Thread(sniffTask).start();
             if (i <= ports_mod_thread) {

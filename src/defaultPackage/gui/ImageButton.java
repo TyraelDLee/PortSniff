@@ -15,7 +15,7 @@ import javafx.scene.text.Font;
  *                                                                        *
  *                       Copyright (c) 2020 LYL                           *
  *                            @author LYL                                 *
- *                            @version 1.0                                *
+ *                            @version 1.1                                *
  **************************************************************************/
 
 public class ImageButton extends StackPane {
@@ -65,7 +65,10 @@ public class ImageButton extends StackPane {
         this.background.setWidth(width);
         this.background.setFill(backgroundColor);
         this.showText.setText(text);
-
+        if (isLight(r, g, b))
+            this.showText.setTextFill(new Color(0, 0, 0, 1));
+        else
+            this.showText.setTextFill(new Color(1, 1, 1, 1));
         this.getChildren().addAll(background, showText);
     }
 
@@ -156,5 +159,18 @@ public class ImageButton extends StackPane {
     void setColor(double r, double g, double b, double a){
         this.backgroundColor = new Color(r,g,b,a);
         this.background.setFill(backgroundColor);
+        if (isLight(r, g, b))
+            this.showText.setTextFill(new Color(0, 0, 0, 1));
+        else
+            this.showText.setTextFill(new Color(1, 1, 1, 1));
+    }
+
+    void setRadius(double r){
+        background.setArcHeight(r);
+        background.setArcWidth(r);
+    }
+
+    private boolean isLight(double r, double g, double b) {
+        return ((0.213 * r+ 0.715 * g + 0.072 * b) * 255> 255 / 2f);
     }
 }

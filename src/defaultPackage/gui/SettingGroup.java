@@ -10,7 +10,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**************************************************************************
  *                                                                        *
@@ -43,7 +42,7 @@ public class SettingGroup extends StackPane {
     public RadioButton https = new RadioButton("https");
     private GridPane requestmode = new GridPane();
     private static final Label copyright = new Label("Copyright © 2019 - 2020 Tyrael LI");
-    private static final Label version = new Label("Version 1.7");
+    private static final Label version = new Label("Version 2.0 early alpha");
     private static final Color infoColor = new Color(.5, .5, .5, .8);
     private GridPane infoLayout = new GridPane();
 
@@ -130,6 +129,16 @@ public class SettingGroup extends StackPane {
         root.setMaxSize(600, 300);
         this.setAlignment(Pos.CENTER);
         resize(width, height);
+        init();
+        this.getChildren().addAll(root, vBox, hBox, infoLayout);
+    }
+
+    SettingGroup() {
+        this.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 255), null, null)));
+        root.setMinSize(600, 300);
+        root.setMaxSize(600, 300);
+        this.setAlignment(Pos.CENTER);
+        resize(0,0);
         init();
         this.getChildren().addAll(root, vBox, hBox, infoLayout);
     }

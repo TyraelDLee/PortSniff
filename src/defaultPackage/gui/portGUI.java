@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *                         PortSniffer v 1.0                              *
  *                         Main class for GUI                             *
  *                                                                        *
+ *                  Backup class, now move to sniffGUI                    *
  *                       Copyright (c) 2020 LYL                           *
  *                            @author LYL                                 *
  *                            @version 1.0                                *
@@ -47,6 +48,8 @@ public class portGUI extends Application implements Observer {
     private MenuBar menuRoot = new MenuBar();
     private Menu fileM = new Menu("File");
     private Menu viewM = new Menu("View");
+
+    private String currentType = "sniff";
 
     private final Group root = new Group();
 
@@ -83,16 +86,16 @@ public class portGUI extends Application implements Observer {
         //-- component initial start --//
         resize();
         address_In.setPromptText("web URL or IP. e.g. www.foo.com or 127.0.0.1");
+        //set style//
+        address_In.setStyle("-fx-background-color: transparent;-fx-border-style: solid;-fx-border-width: 0 0 2 0;-fx-border-color: #999999;");
         sniff.setTimeout(1000);
         sniff.setNoOfThread(1);
         settingGroup.setLayoutY(mainStageHeight.doubleValue());
-        //set style//
-        address_In.setStyle("-fx-background-color: transparent;-fx-border-style: solid;-fx-border-width: 0 0 2 0;-fx-border-color: #999999;");
         //-- component initial end --//
 
         //-- component listener setting start --//
         address_In.setOnKeyReleased(event -> {
-            if (event.getCode() == KeyCode.ENTER && address_In.getText().contains("."))
+            if (event.getCode() == KeyCode.ENTER)
                 sniffRun(primaryStage);
         });
         startButton.setOnMouseEntered(event -> startButton.setOver(1.0));
@@ -193,6 +196,8 @@ public class portGUI extends Application implements Observer {
         });
         MenuItem analyze = new MenuItem("Analyze");
         MenuItem portSniff = new MenuItem("Port Sniffer");
+        //analyze.setOnAction(event -> changeType("analysis"));
+        //portSniff.setOnAction(event -> changeType("sniff"));
         fileM.getItems().addAll(Setting);
         viewM.getItems().addAll(analyze, new SeparatorMenuItem(), portSniff);
         menuRoot.getMenus().addAll(fileM, viewM);
@@ -299,45 +304,52 @@ public class portGUI extends Application implements Observer {
     }
 
     private void sniffRun(Stage primaryStage) {
-        primaryStage.setTitle(title+" running...");
-        showPane.clear();
-        progressBar.reset();
-        startButton.setDisable(true);
-        ArrayList<Boolean> allDone = new ArrayList<>();
-        ArrayList<Integer> openPorts = new ArrayList<>();
-        ArrayList<Boolean> allCancel = new ArrayList<>();
-        address = ht + address_In.getText();
-        System.out.println(address);
-        showPane.setContext(address);
-        sniff.setURL(address);
-        final long startTimeStamp = System.currentTimeMillis();
-        //set the sniffer attributes.
-        sniff.distributeWorker();
-        System.out.println("size: " + sniff.WORKERS.size());
-        int threads = 1;
-        //-- Thread status listener start --//
-        for (PortSniff.SniffTask t : sniff.WORKERS) {
-            int finalThreads = threads;
-            AtomicReference<Double> currentProgress = new AtomicReference<>((double) 0);
-            t.progressProperty().addListener((observable, oldValue, newValue) -> {
-                if (t.getProgress() >= currentProgress.get() && allCancel.size()<1) {
+        if(!checkIllegal(address_In.getText())) {
+            address_In.setStyle("-fx-background-color: transparent;-fx-border-style: solid;-fx-border-width: 0 0 2 0;-fx-border-color: #ee6666");
+            address_In.setPromptText("Illegal input! Use IP either URL.");
+            address_In.setText("");
+        }
+        else{
+            address_In.setStyle("-fx-background-color: transparent;-fx-border-style: solid;-fx-border-width: 0 0 2 0;-fx-border-color: #999999");
+            address_In.setPromptText("web URL or IP. e.g. www.foo.com or 127.0.0.1");
+            primaryStage.setTitle(title+" running...");
+            showPane.clear();
+            progressBar.reset();
+            startButton.setDisable(true);
+            ArrayList<Boolean> allDone = new ArrayList<>();
+            ArrayList<Integer> openPorts = new ArrayList<>();
+            ArrayList<Boolean> allCancel = new ArrayList<>();
+            address = ht + address_In.getText();
+            System.out.println(address);
+            showPane.setContext(address);
+            sniff.setURL(address);
+            final long startTimeStamp = System.currentTimeMillis();
+            //set the sniffer attributes.
+            sniff.distributeWorker();
+            System.out.println("size: " + sniff.WORKERS.size());
+            //-- Thread status listener start --//
+            for (PortSniff.SniffTask t : sniff.WORKERS) {
+                AtomicReference<Double> currentProgress = new AtomicReference<>((double) 0);
+                t.progressProperty().addListener((observable, oldValue, newValue) -> {
+                    if (t.getProgress() >= currentProgress.get() && allCancel.size()<1) {
                         currentProgress.set(t.getProgress());
                         progressBar.setUpdate(currentProgress.get());
-                }
-            });
-            t.messageProperty().addListener((observable, oldValue, newValue) -> {
-                if(newValue.equals("Cancelled")) allCancel.add(true);
-                if(allCancel.size()==sniff.getNumOfThread()) primaryStage.setTitle(title);
-                if (newValue.equals("ThreadFinished")) {
-                    allDone.add(true);
-                    System.out.println("Thread " + finalThreads + " done!");
-                    openPorts.addAll(t.getOpenPortOnThisThread());
-                }
-                if (allDone.size() == sniff.getNumOfThread()) getReport(primaryStage,openPorts,startTimeStamp);
-            });
-            threads++;
+                    }
+                });
+                t.messageProperty().addListener((observable, oldValue, newValue) -> {
+                    if(newValue.equals("Cancelled")) allCancel.add(true);
+                    if(allCancel.size()==sniff.getNumOfThread()) primaryStage.setTitle(title);
+                    if (newValue.equals("ThreadFinished")) {
+                        allDone.add(true);
+                        System.out.println("Thread" + t.getThreadID() + " done!");
+                        openPorts.addAll(t.getOpenPortOnThisThread());
+                    }
+                    if (allDone.size() == sniff.getNumOfThread() || allDone.size()==1 && settingGroup.commonPort.selectedProperty().get()) getReport(primaryStage,openPorts,startTimeStamp);
+                });
+            }
+            //-- Thread status listener end --//
         }
-        //-- Thread status listener end --//
+
     }
 
     private void getReport(Stage primaryStage, ArrayList<Integer> openPorts, long startTimeStamp){
@@ -350,6 +362,12 @@ public class portGUI extends Application implements Observer {
         startButton.setDisable(false);
         primaryStage.setTitle(title);
     }
+
+    private boolean checkIllegal(String input){
+        System.out.println(input);
+        return input.length()>=1 && input.contains(".") || input.equals("localhost");
+    }
 }
-//todo: add the pulse/restart feature for sub-threads.
-//todo: get server information. and fix sigar.
+//todo: add the pulse/restart feature for sub-threads. (temporally suspend)
+//todo: get server information. (under development)
+//todo: add a main UI class, move sniff class to Group, combine analysis and port sniff.
