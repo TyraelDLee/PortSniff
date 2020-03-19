@@ -1,4 +1,4 @@
-package defaultPackage;
+package defaultPackage.ServiceSniff;
 
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
@@ -6,6 +6,10 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+/**
+ * This analysis by using whois and target http header if applicable.
+ *
+ */
 public class ServerAnalysis {
     private Socket socket;
     private boolean isHttps = false;

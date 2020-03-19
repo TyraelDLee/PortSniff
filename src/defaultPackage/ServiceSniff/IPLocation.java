@@ -1,4 +1,4 @@
-package defaultPackage;
+package defaultPackage.ServiceSniff;
 
 import java.io.*;
 import java.net.URL;

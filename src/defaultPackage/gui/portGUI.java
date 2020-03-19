@@ -1,6 +1,7 @@
 package defaultPackage.gui;
 
 import defaultPackage.*;
+import defaultPackage.Hackage.ARPDisconnect;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.RotateTransition;

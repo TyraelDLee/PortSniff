@@ -9,5 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="sigar-1.6.5.132-6" level="project" />
     <orderEntry type="library" exported="" name="log4j" level="project" />
+    <orderEntry type="library" name="R Skeletons" level="application" />
+    <orderEntry type="library" exported="" name="jpcap-0.01.16" level="project" />
   </component>
 </module>

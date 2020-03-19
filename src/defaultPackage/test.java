@@ -3,7 +3,7 @@ package defaultPackage;
 
 public class test {
     public static void main(String[] args) {
-
+        String t = "";
         int tr = 20;
         int startPort = 1;
         int endPort = 11;

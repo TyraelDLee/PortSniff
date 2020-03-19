@@ -1,4 +1,4 @@
-package defaultPackage;
+package defaultPackage.ServiceSniff;
 
 import javax.net.ssl.*;
 import java.security.KeyManagementException;
@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class WhoisUtil {
     private static final int DEFAULT_PORT = 43;
