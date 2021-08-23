@@ -1,5 +1,5 @@
 # PortSniff
-A port sniffer with GUI developed by Java
+A port sniffer with GUI developed by Java and JavaFX, Mac app packaging by Spring.
 
 ## Useage
 Type the destination URL or IP address amd click Start button. 
